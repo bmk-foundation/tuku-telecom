@@ -1,0 +1,22 @@
+{
+  "name": "টুকু টেলিকম & মোবাইল সার্ভিসিং",
+  "short_name": "Mobile Servicing",
+  "description": "দৈনিক কাজের হিসাব ও রিপোর্ট ড্যাশবোর্ড",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#00897b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

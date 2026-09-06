@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ডেইলি কাজের হিসাব</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
+
+    <!-- Excel Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- SweetAlert2 (সুন্দর ডায়ালগ ও পপআপের জন্য) -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Toastify (ছোট কাস্টম নোটিফিকেশনের জন্য) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<!-- PWA Web App Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00897b">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2942/2942544.png">
+
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- হেডার -->
+        <header class="dash-header">
+            <h2><i class="fas fa-tools"></i> টুকু টেলিকম & মোবাইল সার্ভিসিং</h2>
+            <p>দৈনিক কাজের হিসাব ও রিপোর্ট ড্যাশবোর্ড</p>
+        </header>
+
+        <!-- তারিখ ও রিপোর্ট ফিল্টার সেকশন -->
+        <div class="filter-card">
+            <h3><i class="fas fa-filter"></i> রিপোর্ট ফিল্টার ও সার্চ</h3>
+            <div class="filter-inputs">
+                <div>
+                    <label>শুরুর তারিখ:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div>
+                    <label>শেষের তারিখ:</label>
+                    <input type="date" id="endDate">
+                </div>
+                <button id="btnFilter" class="btn-filter"><i class="fas fa-search"></i> রিপোর্ট দেখুন</button>
+            </div>
+            <div class="quick-buttons">
+                <button onclick="setFilter('today')">আজকের</button>
+                <button onclick="setFilter('thisMonth')">এই মাসের</button>
+            </div>
+        </div>
+        <!-- সামারি কার্ড -->
+        <div class="summary-cards">
+            <div class="card card-android">
+                <i class="fas fa-mobile-alt"></i>
+                <div>
+                    <h3>অ্যান্ড্রয়েড</h3>
+                    <span id="androidCount">০ টি</span>
+                    <small id="androidSum">৳ ০</small>
+                </div>
+            </div>
+            <div class="card card-button">
+                <i class="fas fa-phone"></i>
+                <div>
+                    <h3>বাটন ফোন</h3>
+                    <span id="buttonCount">০ টি</span>
+                    <small id="buttonSum">৳ ০</small>
+                </div>
+            </div>
+            <div class="card card-total">
+                <i class="fas fa-wallet"></i>
+                <div>
+                    <h3>সর্বমোট ইনকাম</h3>
+                    <span id="totalIncome">৳ ০</span>
+                    <small id="totalCount">মোট: ০ টি</small>
+                </div>
+            </div>
+        </div>
+        <!-- ডাটা এন্ট্রি ফর্ম -->
+        <div class="form-container">
+            <h3><i class="fas fa-plus-circle"></i> নতুন কাজ সেভ করুন</h3>
+            <form id="jobForm">
+                <div class="input-group">
+                    <label>ডিভাইসের ধরন</label>
+                    <select id="deviceType" required>
+                        <option value="android">অ্যান্ড্রয়েড (Android)</option>
+                        <option value="button">বাটন (Feature Phone)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>মোবাইল মডেল</label>
+                    <input type="text" id="phoneModel" placeholder="উদা: Redmi Note 10 / Nokia 105" required>
+                </div>
+                <div class="input-group">
+                    <label>সমস্যা / কাজের বিবরণ</label>
+                    <input type="text" id="issue" placeholder="উদা: ডিসপ্লে / চার্জিং পিন" required>
+                </div>
+                <div class="input-group">
+                    <label>বিল (টাকা)</label>
+                    <input type="number" id="billAmount" placeholder="উদা: ১৫০০" required>
+                </div>
+                <button type="submit" id="btnSubmit" class="btn-submit">
+                    <i class="fas fa-save"></i> সেভ করুন
+                </button>
+            </form>
+        </div>
+
+        <!-- কাজের তালিকা ও এক্সপোর্ট বাটন -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3><i class="fas fa-list-alt"></i> কাজের বিবরণী তালিকা</h3>
+                <div class="export-btns">
+                    <button id="btnExcel" class="btn-export excel"><i class="fas fa-file-excel"></i> Excel</button>
+                    <button id="btnPDF" class="btn-export pdf"><i class="fas fa-file-pdf"></i> PDF (প্রিন্ট)</button>
+                </div>
+            </div>
+            
+            <div class="table-responsive">
+                <table id="reportTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>তারিখ</th>
+                            <th>টাইপ</th>
+                            <th>মডেল</th>
+                            <th>কাজ</th>
+                            <th>বিল</th>
+                            <th>অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobList">
+                        <tr>
+                            <td colspan="7" style="text-align:center;">ডাটা লোড হচ্ছে...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

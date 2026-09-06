@@ -1,0 +1,128 @@
+:root {
+    --primary: #00897b;
+    --primary-dark: #00695c;
+    --bg: #f4f7f6;
+    --white: #ffffff;
+    --text: #2c3e50;
+    --danger: #e53935;
+    --excel: #217346;
+    --pdf: #d32f2f;
+}
+@font-face {
+    font-family: 'Adorsho';
+    src: url('AdorshoLip.ttf') format('truetype');
+    font-display: swap;
+}
+body {
+    font-family: 'Adorsho', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    margin: 0;
+    padding: 15px;
+    color: var(--text);
+}
+
+.dashboard-container { max-width: 850px; margin: 0 auto; }
+
+.dash-header {
+    text-align: center;
+    background: linear-gradient(135deg, #0d5c54, var(--primary));
+    color: white;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.dash-header h2 { margin: 0; font-size: 20px; }
+.dash-header p { margin: 5px 0 0; opacity: 0.9; font-size: 13px; }
+
+/* ফিল্টার কার্ড */
+.filter-card {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 12px;
+    margin: 15px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.filter-card h3 { margin: 0 0 10px; font-size: 15px; color: var(--primary); }
+.filter-inputs { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.filter-inputs div { flex: 1; min-width: 130px; }
+.filter-inputs label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 4px; }
+.filter-inputs input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+
+.btn-filter {
+    font-family: 'adorsho';
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 9px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.quick-buttons { margin-top: 10px; display: flex; gap: 8px; }
+.quick-buttons button {
+    font-family: 'adorsho';
+    background: #e0f2f1;
+    color: var(--primary-dark);
+    border: none;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* সামারি কার্ড */
+.summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.card { background: var(--white); padding: 12px; border-radius: 10px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.card i { font-size: 22px; }
+.card-android i { color: #3ddc84; }
+.card-button i { color: #ff9800; }
+.card-total i { color: var(--primary); }
+.card h3 { margin: 4px 0 0; font-size: 12px; color: #666; }
+.card span { font-size: 18px; font-weight: bold; display: block; }
+.card small { font-size: 11px; color: #888; font-weight: bold; }
+
+.form-container, .table-container { background: var(--white); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+.input-group { margin-bottom: 12px; }
+.input-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.input-group input, .input-group select {
+    font-family: 'adorsho';
+    width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+
+.btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+
+/* টেবিল হেডার ও এক্সপোর্ট বাটন */
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+.table-header h3 { margin: 0; font-size: 16px; color: var(--primary); }
+.export-btns { display: flex; gap: 8px; }
+.btn-export { border: none; color: white; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+.btn-export.excel { background: var(--excel); }
+.btn-export.pdf { background: var(--pdf); }
+
+.table-responsive { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; font-size: 13px; }
+th { background: #f8fafc; color: #475569; }
+
+.badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+.badge-android { background: #e8f5e9; color: #2e7d32; }
+.badge-button { background: #fff3e0; color: #e65100; }
+.btn-delete { background: none; border: none; color: var(--danger); cursor: pointer; }
+
+@media (max-width: 600px) {
+    .summary-cards { grid-template-columns: 1fr; }
+}
+
+/* --- প্রিন্ট / PDF তৈরির সময় পেজের স্টাইল --- */
+@media print {
+    body { background-color: #ffffff; padding: 0; }
+    .filter-card, .form-container, .export-btns, .btn-delete, th:last-child, td:last-child {
+        display: none !important;
+    }
+    .dash-header { background: none !important; color: #000 !important; box-shadow: none; border-bottom: 2px solid #00897b; border-radius: 0; }
+    .dash-header h2 { color: #00897b; }
+    .dash-header p { color: #555; }
+    .card, .table-container { box-shadow: none; border: 1px solid #ddd; }
+}
