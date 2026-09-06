@@ -91,7 +91,8 @@ body {
     font-family: 'adorsho';
     width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
 
-.btn-submit { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.btn-submit { font-family: 'adorsho';
+    width: 100%; background: var(--primary); color: white; border: none; padding: 12px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 
 /* টেবিল হেডার ও এক্সপোর্ট বাটন */
 .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
