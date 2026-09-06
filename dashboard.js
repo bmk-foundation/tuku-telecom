@@ -25,6 +25,42 @@ const btnSubmit = document.getElementById('btnSubmit');
 
 let currentFilteredData = [];
 
+// ফায়ারবেসের জন্য YYYY-MM-DD ফরম্যাট
+function getDbDateString(dateObj = new Date()) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// ইনপুট ফিল্ড ও টেবিলে প্রদর্শনের জন্য DD/MM/YYYY ফরম্যাট
+function getDisplayDateString(dateObj = new Date()) {
+    const year = dateObj.getFullYear();
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    return `${day}/${month}/${year}`;
+}
+
+// YYYY-MM-DD ডাটাকে DD/MM/YYYY-তে রূপান্তর
+function formatDbToDisplay(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+}
+
+// DD/MM/YYYY ডাটাকে YYYY-MM-DD (ফায়ারবেস কুয়েরির জন্য)-তে রূপান্তর
+function formatDisplayToDb(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('/');
+    if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+}
+
 // টোস্ট নোটিফিকেশন কাস্টম ফাংশন
 function showToast(message, type = "success") {
     Toastify({
@@ -42,29 +78,29 @@ function showToast(message, type = "success") {
     }).showToast();
 }
 
-// আজকের তারিখ নেওয়া
-const todayStr = new Date().toISOString().split('T')[0];
-startDateInput.value = todayStr;
-endDateInput.value = todayStr;
+// ইনপুট বক্সে DD/MM/YYYY ফরম্যাটে আজকের তারিখ সেট করা
+startDateInput.value = getDisplayDateString();
+endDateInput.value = getDisplayDateString();
 
 // তারিখ ফিল্টার সেট করার কুইক ফাংশন
 window.setFilter = (type) => {
     const today = new Date();
     if (type === 'today') {
-        startDateInput.value = todayStr;
-        endDateInput.value = todayStr;
+        startDateInput.value = getDisplayDateString(today);
+        endDateInput.value = getDisplayDateString(today);
     } else if (type === 'thisMonth') {
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-        startDateInput.value = firstDay;
-        endDateInput.value = todayStr;
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        startDateInput.value = getDisplayDateString(firstDay);
+        endDateInput.value = getDisplayDateString(today);
     }
     loadReportData();
 };
 
 // ফায়ারবেস থেকে তারিখের পরিসর অনুযায়ী ডাটা লোড করা
 function loadReportData() {
-    const start = startDateInput.value;
-    const end = endDateInput.value;
+    // DD/MM/YYYY থেকে YYYY-MM-DD ফরম্যাটে নিয়ে ডাটাবেজে কুয়েরি চালানো
+    const start = formatDisplayToDb(startDateInput.value);
+    const end = formatDisplayToDb(endDateInput.value);
 
     db.ref('daily_jobs').orderByChild('date').startAt(start).endAt(end).on('value', (snapshot) => {
         jobList.innerHTML = '';
@@ -100,7 +136,7 @@ function loadReportData() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${jobIndex}</td>
-                    <td>${job.date}</td>
+                    <td>${formatDbToDisplay(job.date)}</td>
                     <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                     <td><b>${job.model}</b></td>
                     <td>${job.issue}</td>
@@ -143,12 +179,14 @@ jobForm.addEventListener('submit', (e) => {
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> সেভ হচ্ছে...';
 
+    const saveDbDate = getDbDateString();
+
     const newJob = {
         deviceType: document.getElementById('deviceType').value,
         model: document.getElementById('phoneModel').value.trim(),
         issue: document.getElementById('issue').value.trim(),
         bill: Number(document.getElementById('billAmount').value),
-        date: todayStr,
+        date: saveDbDate,
         timestamp: firebase.database.ServerValue.TIMESTAMP
     };
 
@@ -157,6 +195,11 @@ jobForm.addEventListener('submit', (e) => {
             jobForm.reset();
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = '<i class="fas fa-save"></i> সেভ করুন';
+            
+            // রিয়েলটাইম ইনপুট ডেট রিফ্রেশ (DD/MM/YYYY)
+            startDateInput.value = getDisplayDateString();
+            endDateInput.value = getDisplayDateString();
+            
             showToast('নতুন কাজ সফলভাবে সেভ হয়েছে!');
             loadReportData();
         })
@@ -200,7 +243,7 @@ document.getElementById('btnExcel').addEventListener('click', () => {
 
     const excelData = currentFilteredData.map((job, index) => ({
         'ক্রমিক': index + 1,
-        'তারিখ': job.date,
+        'তারিখ': formatDbToDisplay(job.date),
         'ধরন': job.deviceType === 'android' ? 'অ্যান্ড্রয়েড' : 'বাটন',
         'মোবাইল মডেল': job.model,
         'কাজের বিবরণ': job.issue,
