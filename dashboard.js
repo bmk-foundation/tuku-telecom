@@ -96,9 +96,8 @@ window.setFilter = (type) => {
     loadReportData();
 };
 
-// ফায়ারবেস থেকে তারিখের পরিসর অনুযায়ী ডাটা লোড করা
+// ফায়ারবেস থেকে তারিখের পরিসর অনুযায়ী ডাটা লোড ও তারিখ অনুযায়ী গ্রুপ করা
 function loadReportData() {
-    // DD/MM/YYYY থেকে YYYY-MM-DD ফরম্যাটে নিয়ে ডাটাবেজে কুয়েরি চালানো
     const start = formatDisplayToDb(startDateInput.value);
     const end = formatDisplayToDb(endDateInput.value);
 
@@ -114,40 +113,67 @@ function loadReportData() {
             const data = snapshot.val();
             const keys = Object.keys(data).reverse();
 
+            // ১. তারিখ অনুযায়ী অবজেক্টে ডাটা গ্রুপ করা
+            const groupedData = {};
+
             keys.forEach((key) => {
                 const job = data[key];
                 job.key = key;
                 currentFilteredData.push(job);
-                
-                const bill = Number(job.bill || 0);
-                jobIndex++;
 
-                if (job.deviceType === 'android') {
-                    androidCount++;
-                    androidTotal += bill;
-                } else {
-                    buttonCount++;
-                    buttonTotal += bill;
+                const dateKey = job.date; // YYYY-MM-DD
+                if (!groupedData[dateKey]) {
+                    groupedData[dateKey] = [];
                 }
+                groupedData[dateKey].push(job);
+            });
 
-                const badgeClass = job.deviceType === 'android' ? 'badge-android' : 'badge-button';
-                const badgeText = job.deviceType === 'android' ? 'অ্যান্ড্রয়েড' : 'বাটন';
+            // ২. গ্রুপ করা ডাটাগুলো টেবিলে আলাদা তারিখের সেকশন তৈরি করে রেন্ডার করা
+            Object.keys(groupedData).forEach((dateKey) => {
+                const jobsInDate = groupedData[dateKey];
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${jobIndex}</td>
-                    <td>${formatDbToDisplay(job.date)}</td>
-                    <td><span class="badge ${badgeClass}">${badgeText}</span></td>
-                    <td><b>${job.model}</b></td>
-                    <td>${job.issue}</td>
-                    <td>৳${job.bill}</td>
-                    <td>
-                        <button class="btn-delete" onclick="deleteJob('${key}')" title="ডিলিট করুন">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                // প্রতিটি নতুন তারিখের জন্য হেডার রো (Header Row)
+                const dateHeaderRow = document.createElement('tr');
+                dateHeaderRow.style.backgroundColor = '#e0f2f1';
+                dateHeaderRow.innerHTML = `
+                    <td colspan="7" style="text-align: left; font-weight: bold; color: #004d40; padding: 10px 12px; border-top: 2px solid #b2dfdb;">
+                        📅 তারিখ: ${formatDbToDisplay(dateKey)} (${jobsInDate.length} টি কাজ)
                     </td>
                 `;
-                jobList.appendChild(row);
+                jobList.appendChild(dateHeaderRow);
+
+                // ওই দিনের কাজগুলো রেন্ডার করা
+                jobsInDate.forEach((job) => {
+                    const bill = Number(job.bill || 0);
+                    jobIndex++;
+
+                    if (job.deviceType === 'android') {
+                        androidCount++;
+                        androidTotal += bill;
+                    } else {
+                        buttonCount++;
+                        buttonTotal += bill;
+                    }
+
+                    const badgeClass = job.deviceType === 'android' ? 'badge-android' : 'badge-button';
+                    const badgeText = job.deviceType === 'android' ? 'অ্যান্ড্রয়েড' : 'বাটন';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${jobIndex}</td>
+                        <td>${formatDbToDisplay(job.date)}</td>
+                        <td><span class="badge ${badgeClass}">${badgeText}</span></td>
+                        <td><b>${job.model}</b></td>
+                        <td>${job.issue}</td>
+                        <td>৳${job.bill}</td>
+                        <td>
+                            <button class="btn-delete" onclick="deleteJob('${job.key}')" title="ডিলিট করুন">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    jobList.appendChild(row);
+                });
             });
 
             // কার্ডের তথ্য আপডেট
